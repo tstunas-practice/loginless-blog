@@ -1,4 +1,5 @@
 const express = require("express");
+const hashUtil = require("../utils/hash");
 const { Comment } = require("../schemas");
 const router = express.Router();
 
@@ -18,9 +19,10 @@ router.get("/:postId", async (req, res) => {
  */
 router.post("/", async (req, res) => {
   const { author, password, content, postId } = req.body;
+  const passwordHash = hashUtil.hashPassword(password);
   const comment = new Comment({
     author,
-    password,
+    password: passwordHash,
     content,
     postId,
   });
@@ -38,10 +40,21 @@ router.post("/", async (req, res) => {
 router.put("/:commentId", async (req, res) => {
   const { commentId } = req.params;
   const { password, content } = req.body;
+  const comment = await Comment.findById(commentId).lean();
+  if (!comment) {
+    return res.json({
+      message: "없음",
+    });
+  }
+  if (!hashUtil.comparePassword(password, comment.password)) {
+    return res.json({
+      message: "일치 안함",
+    });
+  }
   await Comment.findByIdAndUpdate(commentId, {
     $set: { content: content },
   }).lean();
-  res.json({
+  return res.json({
     message: "성공",
   });
 });
@@ -50,6 +63,18 @@ router.put("/:commentId", async (req, res) => {
  */
 router.delete("/:commentId", async (req, res) => {
   const { commentId } = req.params;
+  const { password } = req.body;
+  const comment = await Comment.findById(commentId).lean();
+  if (!comment) {
+    return res.json({
+      message: "없음",
+    });
+  }
+  if (!hashUtil.comparePassword(password, comment.password)) {
+    return res.json({
+      message: "일치 안함",
+    });
+  }
   await Comment.findByIdAndDelete(commentId).lean();
   res.json({
     message: "성공",

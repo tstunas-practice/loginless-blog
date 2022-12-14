@@ -1,4 +1,5 @@
 const express = require("express");
+const hashUtil = require("../utils/hash");
 const { Post } = require("../schemas");
 const router = express.Router();
 
@@ -28,10 +29,11 @@ router.get("/", async (req, res) => {
  */
 router.post("/", async (req, res) => {
   const { title, author, password, content } = req.body;
+  const passwordHash = hashUtil.hashPassword(password);
   const post = new Post({
     title: title,
     author: author,
-    password: password, // 추후 암호화 필요
+    password: passwordHash,
     content: content,
   });
   await post.save();
@@ -47,7 +49,17 @@ router.post("/", async (req, res) => {
 router.put("/:postId", async (req, res) => {
   const { postId } = req.params;
   const { title, author, password, content } = req.body;
-  // TODO: 비밀번호 비교 추가
+  const post = await Post.findById(postId).lean();
+  if (!post) {
+    return res.json({
+      message: "없음",
+    });
+  }
+  if (!hashUtil.comparePassword(password, post.password)) {
+    return res.json({
+      message: "일치 안함",
+    });
+  }
   await Post.findByIdAndUpdate(postId, {
     $set: { title: title, author: author, content: content },
   }).lean();
@@ -59,6 +71,17 @@ router.put("/:postId", async (req, res) => {
  */
 router.delete("/:postId", async (req, res) => {
   const { postId } = req.params;
+  const post = await Post.findById(postId).lean();
+  if (!post) {
+    return res.json({
+      message: "없음",
+    });
+  }
+  if (!hashUtil.comparePassword(password, post.password)) {
+    return res.json({
+      message: "일치 안함",
+    });
+  }
   await Post.findByIdAndDelete(postId).lean();
   res.json({
     message: "성공",
