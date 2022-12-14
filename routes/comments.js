@@ -19,6 +19,12 @@ router.get("/:postId", async (req, res) => {
  */
 router.post("/", async (req, res) => {
   const { author, password, content, postId } = req.body;
+  if (!content) {
+    return res.json({
+      success: false,
+      message: "댓글 내용을 입력해주세요.",
+    });
+  }
   const passwordHash = hashUtil.hashPassword(password);
   const comment = new Comment({
     author,
@@ -40,6 +46,12 @@ router.post("/", async (req, res) => {
 router.put("/:commentId", async (req, res) => {
   const { commentId } = req.params;
   const { password, content } = req.body;
+  if (!content) {
+    return res.json({
+      success: false,
+      message: "댓글 내용을 입력해주세요.",
+    });
+  }
   const comment = await Comment.findById(commentId).lean();
   if (!comment) {
     return res.json({
