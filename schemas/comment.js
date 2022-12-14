@@ -3,7 +3,18 @@ const { Schema } = mongoose;
 
 const commentSchema = new Schema(
   {
-    content: String,
+    author: {
+      type: String,
+      required: true,
+    },
+    content: {
+      type: String,
+      required: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
     postId: {
       type: Schema.Types.ObjectId,
       ref: "Post",

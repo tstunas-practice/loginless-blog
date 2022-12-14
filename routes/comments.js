@@ -17,8 +17,10 @@ router.get("/:postId", async (req, res) => {
  * - 댓글 내용을 입력하고 댓글 작성 API를 호출한 경우 작성한 댓글을 추가하기
  */
 router.post("/", async (req, res) => {
-  const { content, postId } = req.body;
+  const { author, password, content, postId } = req.body;
   const comment = new Comment({
+    author,
+    password,
     content,
     postId,
   });
@@ -35,7 +37,7 @@ router.post("/", async (req, res) => {
  */
 router.put("/:commentId", async (req, res) => {
   const { commentId } = req.params;
-  const { content } = req.body;
+  const { password, content } = req.body;
   await Comment.findByIdAndUpdate(commentId, {
     $set: { content: content },
   }).lean();
