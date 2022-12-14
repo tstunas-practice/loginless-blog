@@ -1,0 +1,8 @@
+{
+  "name": "loginless-blog",
+  "version": "1.0.0",
+  "main": "app.js",
+  "author": "Park Jin",
+  "license": "MIT",
+  "private": true
+}
