@@ -29,7 +29,7 @@ router.get("/", async (req, res) => {
  */
 router.post("/", async (req, res) => {
   const { title, author, password, content } = req.body;
-  const passwordHash = hashUtil.hashPassword(password);
+  const passwordHash = await hashUtil.hashPassword(password);
   const post = new Post({
     title: title,
     author: author,
@@ -49,13 +49,18 @@ router.post("/", async (req, res) => {
 router.put("/:postId", async (req, res) => {
   const { postId } = req.params;
   const { title, author, password, content } = req.body;
+  if (!password) {
+    return res.json({
+      message: "비밀번호 필요",
+    });
+  }
   const post = await Post.findById(postId).lean();
   if (!post) {
     return res.json({
       message: "없음",
     });
   }
-  if (!hashUtil.comparePassword(password, post.password)) {
+  if (!(await hashUtil.comparePassword(password, post.password))) {
     return res.json({
       message: "일치 안함",
     });
@@ -77,7 +82,7 @@ router.delete("/:postId", async (req, res) => {
       message: "없음",
     });
   }
-  if (!hashUtil.comparePassword(password, post.password)) {
+  if (!(await hashUtil.comparePassword(password, post.password))) {
     return res.json({
       message: "일치 안함",
     });
