@@ -7,7 +7,7 @@ const app = express();
 
 app.engine(
   "hbs",
-  hbs({
+  hbs.engine({
     extname: "hbs",
     defaultLayout: "layout",
     layoutsDir: __dirname + "/views/layouts",
@@ -21,6 +21,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", routes);
+
+app.get("/", (req, res) => {
+  res.status(200).render("index.hbs");
+});
 
 mongoose.connect("mongodb://root:test@localhost:27017/test?authSource=admin");
 

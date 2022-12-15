@@ -1,9 +1,12 @@
 {
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true,
-    "source.fixAll.stylelint": true,
-    "source.organizeImports": true
-  },
+  "[javascript]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true,
+      
+    },
+    
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
 }
