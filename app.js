@@ -1,7 +1,22 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const hbs = require("express-handlebars");
 const routes = require("./routes");
+
 const app = express();
+
+app.engine(
+  "hbs",
+  hbs({
+    extname: "hbs",
+    defaultLayout: "layout",
+    layoutsDir: __dirname + "/views/layouts",
+    partialDir: __dirname + "/views/partials",
+  })
+);
+app.set("view engine", "hbs");
+
+app.use(express.static(__dirname + "/public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
