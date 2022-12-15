@@ -1,30 +1,16 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const hbs = require("express-handlebars");
 const routes = require("./routes");
+const cors = require("cors");
 
 const app = express();
-
-app.engine(
-  "hbs",
-  hbs.engine({
-    extname: "hbs",
-    defaultLayout: "layout",
-    layoutsDir: __dirname + "/views/layouts",
-    partialDir: __dirname + "/views/partials",
-  })
-);
-app.set("view engine", "hbs");
+app.use(cors());
 
 app.use(express.static(__dirname + "/public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", routes);
-
-app.get("/", (req, res) => {
-  res.status(200).render("index.hbs");
-});
 
 mongoose.connect("mongodb://root:test@localhost:27017/test?authSource=admin");
 

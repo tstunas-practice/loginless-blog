@@ -25,7 +25,7 @@ router.post("/", async (req, res) => {
       message: "댓글 내용을 입력해주세요.",
     });
   }
-  const passwordHash = hashUtil.hashPassword(password);
+  const passwordHash = await hashUtil.hashPassword(password);
   const comment = new Comment({
     author,
     password: passwordHash,
@@ -58,7 +58,7 @@ router.put("/:commentId", async (req, res) => {
       message: "없음",
     });
   }
-  if (!hashUtil.comparePassword(password, comment.password)) {
+  if (!(await hashUtil.comparePassword(password, comment.password))) {
     return res.json({
       message: "일치 안함",
     });
@@ -82,7 +82,7 @@ router.delete("/:commentId", async (req, res) => {
       message: "없음",
     });
   }
-  if (!hashUtil.comparePassword(password, comment.password)) {
+  if (!(await hashUtil.comparePassword(password, comment.password))) {
     return res.json({
       message: "일치 안함",
     });
