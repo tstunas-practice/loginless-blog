@@ -21,6 +21,7 @@ router.get("/:postId", async (req, res) => {
       .where("postId")
       .equals(postId)
       .select("-password")
+      .sort({ createdAt: -1 })
       .lean();
     res.status(200).json(result);
   } catch (e) {
