@@ -1,15 +1,30 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const hashUtil = require("../utils/hash");
 const { Comment } = require("../schemas");
 const router = express.Router();
+const { ObjectId } = mongoose.mongo;
 
 /**
  * 댓글 목록 조회 API
  */
 router.get("/:postId", async (req, res) => {
-  const { postId } = req.params;
-  const result = await Comment.find().where("postId").equals(postId).lean();
-  res.json(result);
+  try {
+    const { postId } = req.params;
+    if (!ObjectId.isValid(postId)) {
+      return res.status(400).json({
+        success: false,
+        message: "postId는 ObjectId여야합니다.",
+      });
+    }
+    const result = await Comment.find().where("postId").equals(postId).lean();
+    res.status(200).json(result);
+  } catch (e) {
+    console.log(e);
+    return res
+      .status(500)
+      .json({ success: false, message: "서버에 에러가 발생했습니다." });
+  }
 });
 
 /**
@@ -17,25 +32,40 @@ router.get("/:postId", async (req, res) => {
  * - 댓글 내용을 비워둔 채 댓글 작성 API를 호출하면 "댓글 내용을 입력해주세요" 라는 메세지를 return하기
  * - 댓글 내용을 입력하고 댓글 작성 API를 호출한 경우 작성한 댓글을 추가하기
  */
-router.post("/", async (req, res) => {
-  const { author, password, content, postId } = req.body;
-  if (!content) {
-    return res.json({
-      success: false,
-      message: "댓글 내용을 입력해주세요.",
+router.post("/:postId", async (req, res) => {
+  try {
+    const { postId } = req.params;
+    if (!ObjectId.isValid(postId)) {
+      return res.status(400).json({
+        success: false,
+        message: "postId는 ObjectId여야합니다.",
+      });
+    }
+    const { author, password, content } = req.body;
+    if (!content) {
+      return res.status(400).json({
+        success: false,
+        message: "댓글 내용을 입력해주세요.",
+      });
+    }
+    const passwordHash = await hashUtil.hashPassword(password);
+    const comment = new Comment({
+      author,
+      password: passwordHash,
+      content,
+      postId,
     });
+    await comment.save();
+    return res.status(200).json({
+      success: true,
+      message: "댓글을 작성했습니다.",
+    });
+  } catch (e) {
+    console.log(e);
+    return res
+      .status(500)
+      .json({ success: false, message: "서버에 에러가 발생했습니다." });
   }
-  const passwordHash = await hashUtil.hashPassword(password);
-  const comment = new Comment({
-    author,
-    password: passwordHash,
-    content,
-    postId,
-  });
-  await comment.save();
-  res.json({
-    message: "성공",
-  });
 });
 
 /**
@@ -44,53 +74,85 @@ router.post("/", async (req, res) => {
  * - 댓글 내용을 입력하고 댓글 수정 API를 호출한 경우 작성한 댓글을 수정하기
  */
 router.put("/:commentId", async (req, res) => {
-  const { commentId } = req.params;
-  const { password, content } = req.body;
-  if (!content) {
-    return res.json({
-      success: false,
-      message: "댓글 내용을 입력해주세요.",
+  try {
+    const { commentId } = req.params;
+    if (!ObjectId.isValid(commentId)) {
+      return res.status(400).json({
+        success: false,
+        message: "commentId는 ObjectId여야합니다.",
+      });
+    }
+    const { password, content } = req.body;
+    if (!content) {
+      return res.status(400).json({
+        success: false,
+        message: "댓글 내용을 입력해주세요.",
+      });
+    }
+    const comment = await Comment.findById(commentId).lean();
+    if (!comment) {
+      return res.status(404).json({
+        success: false,
+        message: "해당하는 댓글이 없습니다.",
+      });
+    }
+    if (!(await hashUtil.comparePassword(password, comment.password))) {
+      return res.status(401).json({
+        success: false,
+        message: "패스워드가 일치하지 않습니다.",
+      });
+    }
+    await Comment.findByIdAndUpdate(commentId, {
+      $set: { content: content },
+    }).lean();
+    return res.status(200).json({
+      success: true,
+      message: "댓글을 수정했습니다.",
     });
+  } catch (e) {
+    console.log(e);
+    return res
+      .status(500)
+      .json({ success: false, message: "서버에 에러가 발생했습니다." });
   }
-  const comment = await Comment.findById(commentId).lean();
-  if (!comment) {
-    return res.json({
-      message: "없음",
-    });
-  }
-  if (!(await hashUtil.comparePassword(password, comment.password))) {
-    return res.json({
-      message: "일치 안함",
-    });
-  }
-  await Comment.findByIdAndUpdate(commentId, {
-    $set: { content: content },
-  }).lean();
-  return res.json({
-    message: "성공",
-  });
 });
 /**
  * 댓글 삭제 API
  */
 router.delete("/:commentId", async (req, res) => {
-  const { commentId } = req.params;
-  const { password } = req.body;
-  const comment = await Comment.findById(commentId).lean();
-  if (!comment) {
-    return res.json({
-      message: "없음",
+  try {
+    const { commentId } = req.params;
+    if (!ObjectId.isValid(commentId)) {
+      return res.status(400).json({
+        success: false,
+        message: "commentId는 ObjectId여야합니다.",
+      });
+    }
+    const { password } = req.body;
+    const comment = await Comment.findById(commentId).lean();
+    if (!comment) {
+      return res.status(404).json({
+        success: false,
+        message: "해당하는 댓글이 없습니다.",
+      });
+    }
+    if (!(await hashUtil.comparePassword(password, comment.password))) {
+      return res.status(401).json({
+        success: false,
+        message: "패스워드가 일치하지 않습니다.",
+      });
+    }
+    await Comment.findByIdAndDelete(commentId).lean();
+    return res.status(200).json({
+      success: true,
+      message: "댓글을 삭제했습니다.",
     });
+  } catch (e) {
+    console.log(e);
+    return res
+      .status(500)
+      .json({ success: false, message: "서버에 에러가 발생했습니다." });
   }
-  if (!(await hashUtil.comparePassword(password, comment.password))) {
-    return res.json({
-      message: "일치 안함",
-    });
-  }
-  await Comment.findByIdAndDelete(commentId).lean();
-  res.json({
-    message: "성공",
-  });
 });
 
 module.exports = router;
