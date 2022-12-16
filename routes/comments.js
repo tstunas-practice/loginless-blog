@@ -52,9 +52,9 @@ router.post("/:postId", async (req, res) => {
       validationError.push("비밀번호는 반드시 입력해야합니다.");
     } else if (password.length >= 8) {
       validationError.push("비밀번호는 반드시 8글자 이상으로 입력해야합니다.");
-    } else if (/^[0-9a-zA-Z!@#$%^+\-=]*$/.test(password)) {
+    } else if (!/^[0-9a-zA-Z!@#$%^+\-=]*$/.test(password)) {
       validationError.push(
-        "비밀번호는 영문, 숫자, 특수문자(!@#$^+\\-=만 입력 가능합니다."
+        "비밀번호는 영문, 숫자, 특수문자(!@#$^+-=만 입력 가능합니다."
       );
     }
     if (!content) {
@@ -109,9 +109,9 @@ router.put("/:commentId", async (req, res) => {
       validationError.push("비밀번호는 반드시 입력해야합니다.");
     } else if (password.length >= 8) {
       validationError.push("비밀번호는 반드시 8글자 이상으로 입력해야합니다.");
-    } else if (/^[0-9a-zA-Z!@#$%^+\-=]*$/.test(password)) {
+    } else if (!/^[0-9a-zA-Z!@#$%^+\-=]*$/.test(password)) {
       validationError.push(
-        "비밀번호는 영문, 숫자, 특수문자(!@#$%^+\\-=만 입력 가능합니다."
+        "비밀번호는 영문, 숫자, 특수문자(!@#$%^+-=만 입력 가능합니다."
       );
     }
     if (!content) {
@@ -171,9 +171,9 @@ router.post("/delete/:commentId", async (req, res) => {
       validationError.push("비밀번호는 반드시 입력해야합니다.");
     } else if (password.length >= 8) {
       validationError.push("비밀번호는 반드시 8글자 이상으로 입력해야합니다.");
-    } else if (/^[0-9a-zA-Z!@#$%^+\-=]*$/.test(password)) {
+    } else if (!/^[0-9a-zA-Z!@#$%^+\-=]*$/.test(password)) {
       validationError.push(
-        "비밀번호는 영문, 숫자, 특수문자(!@#$%^+\\-=만 입력 가능합니다."
+        "비밀번호는 영문, 숫자, 특수문자(!@#$%^+-=만 입력 가능합니다."
       );
     }
     if (validationError.length > 0) {
