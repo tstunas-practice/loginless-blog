@@ -18,7 +18,7 @@ router.get("/:postId", async (req, res) => {
         message: "postId는 ObjectId여야합니다.",
       });
     }
-    const result = await Post.findById(postId).lean();
+    const result = await Post.findById(postId).select("-password").lean();
     res.status(200).json(result);
   } catch (e) {
     console.log(e);
@@ -35,7 +35,10 @@ router.get("/:postId", async (req, res) => {
  */
 router.get("/", async (req, res) => {
   try {
-    const result = await Post.find().sort("-createdAt").lean();
+    const result = await Post.find()
+      .sort("-createdAt")
+      .select("-password")
+      .lean();
     res.status(200).json(result);
   } catch (e) {
     console.log(e);

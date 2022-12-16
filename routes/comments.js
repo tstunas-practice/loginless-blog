@@ -17,7 +17,11 @@ router.get("/:postId", async (req, res) => {
         message: "postId는 ObjectId여야합니다.",
       });
     }
-    const result = await Comment.find().where("postId").equals(postId).lean();
+    const result = await Comment.find()
+      .where("postId")
+      .equals(postId)
+      .select("-password")
+      .lean();
     res.status(200).json(result);
   } catch (e) {
     console.log(e);

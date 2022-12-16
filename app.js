@@ -19,7 +19,7 @@ app.use(function (err, req, res, next) {
   res.status(500).send("Something broke!");
 });
 
-mongoose.connect("mongodb://localhost:27017/test");
+mongoose.connect("mongodb://root:test@localhost:27017/test?authSource=admin");
 
 app.listen(3000, () => {
   console.log("app listen on port 3000");
