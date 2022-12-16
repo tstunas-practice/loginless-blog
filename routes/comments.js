@@ -42,12 +42,33 @@ router.post("/:postId", async (req, res) => {
       });
     }
     const { author, password, content } = req.body;
+    let validationError = [];
+    if (!author) {
+      validationError.push("작성자명은 반드시 입력해야합니다.");
+    } else if (author.length > 20) {
+      validationError.push("작성자명은 20자 이내로 입력해야합니다.");
+    }
+    if (!password) {
+      validationError.push("비밀번호는 반드시 입력해야합니다.");
+    } else if (password.length >= 8) {
+      validationError.push("비밀번호는 반드시 8글자 이상으로 입력해야합니다.");
+    } else if (/^[0-9a-zA-Z!@#$%^+\-=]*$/.test(password)) {
+      validationError.push(
+        "비밀번호는 영문, 숫자, 특수문자(!@#$^+\\-=만 입력 가능합니다."
+      );
+    }
     if (!content) {
+      validationError.push("글 내용은 반드시 입력해야합니다.");
+    } else if (content.length > 100000) {
+      validationError.push("글 내용은 10만자를 넘길 수 없습니다.");
+    }
+    if (validationError.length > 0) {
       return res.status(400).json({
         success: false,
-        message: "댓글 내용을 입력해주세요.",
+        message: validationError,
       });
     }
+
     const passwordHash = await hashUtil.hashPassword(password);
     const comment = new Comment({
       author,
@@ -83,10 +104,25 @@ router.put("/:commentId", async (req, res) => {
       });
     }
     const { password, content } = req.body;
+    let validationError = [];
+    if (!password) {
+      validationError.push("비밀번호는 반드시 입력해야합니다.");
+    } else if (password.length >= 8) {
+      validationError.push("비밀번호는 반드시 8글자 이상으로 입력해야합니다.");
+    } else if (/^[0-9a-zA-Z!@#$%^+\-=]*$/.test(password)) {
+      validationError.push(
+        "비밀번호는 영문, 숫자, 특수문자(!@#$%^+\\-=만 입력 가능합니다."
+      );
+    }
     if (!content) {
+      validationError.push("글 내용은 반드시 입력해야합니다.");
+    } else if (content.length > 100000) {
+      validationError.push("글 내용은 10만자를 넘길 수 없습니다.");
+    }
+    if (validationError.length > 0) {
       return res.status(400).json({
         success: false,
-        message: "댓글 내용을 입력해주세요.",
+        message: validationError,
       });
     }
     const comment = await Comment.findById(commentId).lean();
@@ -118,8 +154,9 @@ router.put("/:commentId", async (req, res) => {
 });
 /**
  * 댓글 삭제 API
+ * 비밀번호를 넘겨줄 방법이 없어서 post로 대신
  */
-router.delete("/:commentId", async (req, res) => {
+router.post("/delete/:commentId", async (req, res) => {
   try {
     const { commentId } = req.params;
     if (!ObjectId.isValid(commentId)) {
@@ -129,6 +166,22 @@ router.delete("/:commentId", async (req, res) => {
       });
     }
     const { password } = req.body;
+    let validationError = [];
+    if (!password) {
+      validationError.push("비밀번호는 반드시 입력해야합니다.");
+    } else if (password.length >= 8) {
+      validationError.push("비밀번호는 반드시 8글자 이상으로 입력해야합니다.");
+    } else if (/^[0-9a-zA-Z!@#$%^+\-=]*$/.test(password)) {
+      validationError.push(
+        "비밀번호는 영문, 숫자, 특수문자(!@#$%^+\\-=만 입력 가능합니다."
+      );
+    }
+    if (validationError.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: validationError,
+      });
+    }
     const comment = await Comment.findById(commentId).lean();
     if (!comment) {
       return res.status(404).json({
